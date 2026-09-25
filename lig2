@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>eFootball Ligi</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  padding:20px;
+  background:#0f1117;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.box{
+  background:#1b202b;
+  padding:20px;
+  border-radius:18px;
+  margin-bottom:20px;
+}
+
+h2{
+  margin-top:0;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:12px 5px;
+  text-align:center;
+  border-bottom:1px solid #333;
+}
+
+th{
+  color:#aaa;
+}
+
+.takim-adi{
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:0;
+  text-align:center;
+  font-weight:bold;
+}
+
+.fikstur{
+  background:#242a37;
+  margin:10px 0;
+  padding:15px;
+  border-radius:12px;
+}
+
+.hafta{
+  margin-bottom:25px;
+}
+
+.mac{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.mac input{
+  width:55px;
+  padding:8px;
+  text-align:center;
+  border:0;
+  border-radius:7px;
+}
+
+button{
+  padding:9px 13px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.kaydet{
+  background:#2979ff;
+  color:white;
+}
+
+.ekle{
+  background:#20c76a;
+  color:white;
+}
+
+.cikar{
+  background:#e53935;
+  color:white;
+}
+
+.puan-input{
+  width:70px;
+  padding:7px;
+  border-radius:7px;
+  border:0;
+}
+
+.gecmis-mac{
+  background:#252c38;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+}
+
+.sifirla{
+  background:#ff9800;
+  color:white;
+  margin-top:10px;
+}
+
+@media(max-width:600px){
+  body{
+    padding:10px;
+  }
+
+  .mac{
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  table{
+    font-size:12px;
+  }
+
+  th,td{
+    padding:8px 3px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🏆 eFootball Ligi</h1>
+
+<div class="box">
+<h2>📊 Puan Durumu</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>#</th>
+<th>Takım</th>
+<th>O</th>
+<th>G</th>
+<th>B</th>
+<th>M</th>
+<th>AG</th>
+<th>YG</th>
+<th>AV</th>
+<th>P</th>
+</tr>
+</thead>
+
+<tbody id="puanTablosu"></tbody>
+
+</table>
+</div>
+
+
+<div class="box">
+
+<h2>🗓️ 30 Haftalık Fikstür</h2>
+
+<div id="fikstur"></div>
+
+</div>
+
+
+<div class="box">
+
+<h2>➕➖ Manuel Puan</h2>
+
+<div id="manuel"></div>
+
+</div>
+
+
+<div class="box">
+
+<h2>📜 Maç Geçmişi</h2>
+
+<div id="gecmis"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   TAKIMLAR
+========================= */
+
+let takimlar =
+JSON.parse(localStorage.getItem("takimlar")) || [
+
+  {isim:"Takım 1",manuel:0},
+
+  {isim:"Takım 2",manuel:0},
+
+  {isim:"Takım 3",manuel:0},
+
+  {isim:"Takım 4",manuel:0}
+
+];
+
+
+/* =========================
+   OYNANAN MAÇLAR
+========================= */
+
+let maclar =
+JSON.parse(localStorage.getItem("maclar")) || [];
+
+
+/* =========================
+   30 HAFTALIK FİKSTÜR
+=========================
+
+4 takım var.
+
+3 farklı eşleşme düzeni var:
+
+1-2 / 3-4
+1-3 / 2-4
+1-4 / 2-3
+
+Bu düzen 10 kez tekrarlanıyor.
+
+Toplam:
+30 hafta
+60 maç
+
+Her takım:
+30 maç oynuyor.
+
+Her rakiple:
+10 kez oynuyor.
+*/
+
+const fikstur = [
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]],
+
+[[0,1],[2,3]],
+[[0,2],[1,3]],
+[[0,3],[1,2]]
+
+];
+
+
+/* =========================
+   KAYDET
+========================= */
+
+function kaydet(){
+
+  localStorage.setItem(
+    "takimlar",
+    JSON.stringify(takimlar)
+  );
+
+  localStorage.setItem(
+    "maclar",
+    JSON.stringify(maclar)
+  );
+
+}
+
+
+/* =========================
+   TAKIM ADI DEĞİŞTİR
+========================= */
+
+function isimDegistir(index,isim){
+
+  if(!isim.trim()){
+    isim="Takım "+(index+1);
+  }
+
+  takimlar[index].isim=isim;
+
+  kaydet();
+
+  goster();
+
+}
+
+
+/* =========================
+   TAKIM İSTATİSTİĞİ
+========================= */
+
+function istatistik(index){
+
+  let o=0;
+  let g=0;
+  let b=0;
+  let m=0;
+
+  let ag=0;
+  let yg=0;
+
+  let puan=takimlar[index].manuel || 0;
+
+
+  maclar.forEach(mac=>{
+
+    if(mac.t1!==index && mac.t2!==index){
+      return;
+    }
+
+    let bizimGol;
+    let rakipGol;
+
+
+    if(mac.t1===index){
+
+      bizimGol=mac.g1;
+      rakipGol=mac.g2;
+
+    }else{
+
+      bizimGol=mac.g2;
+      rakipGol=mac.g1;
+
+    }
+
+
+    o++;
+
+    ag+=bizimGol;
+    yg+=rakipGol;
+
+
+    if(bizimGol>rakipGol){
+
+      g++;
+      puan+=3;
+
+    }else if(bizimGol===rakipGol){
+
+      b++;
+      puan+=1;
+
+    }else{
+
+      m++;
+
+    }
+
+  });
+
+
+  return {
+
+    o,
+    g,
+    b,
+    m,
+    ag,
+    yg,
+    av:ag-yg,
+    puan
+
+  };
+
+}
+
+
+/* =========================
+   PUAN TABLOSU
+========================= */
+
+function puanTablosunuGoster(){
+
+  let takimSirasi =
+    takimlar.map((takim,index)=>({
+
+      index,
+      ...istatistik(index)
+
+    }));
+
+
+  takimSirasi.sort((a,b)=>{
+
+    if(b.puan!==a.puan){
+
+      return b.puan-a.puan;
+
+    }
+
+    if(b.av!==a.av){
+
+      return b.av-a.av;
+
+    }
+
+    return b.ag-a.ag;
+
+  });
+
+
+  let html="";
+
+
+  takimSirasi.forEach((takim,sira)=>{
+
+    html+=`
+
+    <tr>
+
+      <td>${sira+1}</td>
+
+      <td>
+
+        <input
+          class="takim-adi"
+          value="${takimlar[takim.index].isim}"
+          onchange="isimDegistir(${takim.index},this.value)"
+        >
+
+      </td>
+
+      <td>${takim.o}</td>
+
+      <td>${takim.g}</td>
+
+      <td>${takim.b}</td>
+
+      <td>${takim.m}</td>
+
+      <td>${takim.ag}</td>
+
+      <td>${takim.yg}</td>
+
+      <td>${takim.av}</td>
+
+      <td><b>${takim.puan}</b></td>
+
+    </tr>
+
+    `;
+
+  });
+
+
+  document.getElementById("puanTablosu").innerHTML=html;
+
+}
+
+
+/* =========================
+   FİKSTÜR
+========================= */
+
+function fiksturuGoster(){
+
+  let alan=document.getElementById("fikstur");
+
+  alan.innerHTML="";
+
+
+  fikstur.forEach((hafta,haftaIndex)=>{
+
+    let html=`
+
+    <div class="hafta">
+
+      <h3>${haftaIndex+1}. Hafta</h3>
+
+    `;
+
+
+    hafta.forEach(mac=>{
+
+      let t1=mac[0];
+      let t2=mac[1];
+
+
+      let oynandi=maclar.findIndex(
+
+        x=>
+        x.hafta===haftaIndex &&
+        x.t1===t1 &&
+        x.t2===t2
+
+      );
+
+
+      let skor1="";
+      let skor2="";
+
+
+      if(oynandi!==-1){
+
+        skor1=maclar[oynandi].g1;
+        skor2=maclar[oynandi].g2;
+
+      }
+
+
+      html+=`
+
+      <div class="fikstur">
+
+        <div class="mac">
+
+          <b>${takimlar[t1].isim}</b>
+
+          <input
+            id="g1-${haftaIndex}-${t1}-${t2}"
+            type="number"
+            min="0"
+            value="${skor1}"
+            placeholder="0"
+          >
+
+          <span>-</span>
+
+          <input
+            id="g2-${haftaIndex}-${t1}-${t2}"
+            type="number"
+            min="0"
+            value="${skor2}"
+            placeholder="0"
+          >
+
+          <b>${takimlar[t2].isim}</b>
+
+          <button
+            class="kaydet"
+            onclick="macKaydet(${haftaIndex},${t1},${t2})"
+          >
+
+            Kaydet
+
+          </button>
+
+        </div>
+
+      </div>
+
+      `;
+
+    });
+
+
+    html+=</div>;
+
+    alan.innerHTML+=html;
+
+  });
+
+}
+
+
+/* =========================
+   MAÇ KAYDET
+========================= */
+
+function macKaydet(hafta,t1,t2){
+
+  let input1=
+    document.getElementById(
+      g1-${hafta}-${t1}-${t2}
+    );
+
+  let input2=
+    document.getElementById(
+      g2-${hafta}-${t1}-${t2}
+    );
+
+
+  let g1=Number(input1.value);
+  let g2=Number(input2.value);
+
+
+  if(
+    input1.value==="" ||
+    input2.value==="" ||
+    g1<0 ||
+    g2<0
+  ){
+
+    alert("İki takımın da skorunu gir!");
+
+    return;
+
+  }
+
+
+  let eski=
+    maclar.findIndex(
+
+      x=>
+      x.hafta===hafta &&
+      x.t1===t1 &&
+      x.t2===t2
+
+    );
+
+
+  let yeniMac={
+
+    hafta,
+    t1,
+    t2,
+    g1,
+    g2,
+    tarih:new Date().toLocaleString("tr-TR")
+
+  };
+
+
+  if(eski!==-1){
+
+    maclar[eski]=yeniMac;
+
+  }else{
+
+    maclar.push(yeniMac);
+
+  }
+
+
+  kaydet();
+
+  goster();
+
+}
+
+
+/* =========================
+   MANUEL PUAN
+========================= */
+
+function manuelGoster(){
+
+  let alan=document.getElementById("manuel");
+
+  alan.innerHTML="";
+
+
+  takimlar.forEach((takim,index)=>{
+
+    alan.innerHTML+=`
+
+    <div style="margin:10px 0">
+
+      <b>${takim.isim}</b>
+
+      <input
+        class="puan-input"
+        id="manuel-${index}"
+        type="number"
+        value="1"
+        min="1"
+      >
+
+      <button
+        class="ekle"
+        onclick="manuelPuan(${index},1)"
+      >
+
+        + Ekle
+
+      </button>
+
+      <button
+        class="cikar"
+        onclick="manuelPuan(${index},-1)"
+      >
+
+        - Çıkar
+
+      </button>
+
+    </div>
+
+    `;
+
+  });
+
+}
+
+
+/* =========================
+   MANUEL PUAN DEĞİŞTİR
+========================= */
+
+function manuelPuan(index,cok){
+
+  let miktar=
+    Number(
+      document.getElementById(
+        manuel-${index}
+      ).value
+    );
+
+
+  if(miktar<=0){
+
+    return;
+
+  }
+
+
+  takimlar[index].manuel += miktar*cok;
+
+  kaydet();
+
+  goster();
+
+}
+
+
+/* =========================
+   MAÇ GEÇMİŞİ
+========================= */
+
+function gecmisiGoster(){
+
+  let alan=document.getElementById("gecmis");
+
+
+  if(maclar.length===0){
+
+    alan.innerHTML=
+      "<p>Henüz maç oynanmadı.</p>";
+
+    return;
+
+  }
+
+
+  alan.innerHTML="";
+
+
+  maclar
+  .slice()
+  .reverse()
+  .forEach(mac=>{
+
+    alan.innerHTML+=`
+
+    <div class="gecmis-mac">
+
+      <b>${mac.hafta+1}. Hafta</b>
+
+      <br>
+
+      ${takimlar[mac.t1].isim}
+
+      <strong>
+
+        ${mac.g1} - ${mac.g2}
+
+      </strong>
+
+      ${takimlar[mac.t2].isim}
+
+      <br>
+
+      <small>${mac.tarih}</small>
+
+    </div>
+
+    `;
+
+  });
+
+}
+
+
+/* =========================
+   SAYFAYI YENİLE
+========================= */
+
+function goster(){
+
+  puanTablosunuGoster();
+
+  fiksturuGoster();
+
+  manuelGoster();
+
+  gecmisiGoster();
+
+}
+
+
+/* =========================
+   BAŞLAT
+========================= */
+
+goster();
+
+</script>
+
+</body>
+</html>
