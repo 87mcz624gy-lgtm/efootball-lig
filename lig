@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>eFootball Puanları</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+}
+
+h1 {
+    text-align: center;
+}
+
+#takimlar {
+    max-width: 700px;
+    margin: auto;
+}
+
+.takim {
+    background: #222;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.takim input {
+    font-size: 20px;
+    text-align: center;
+    width: 90%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.puan {
+    font-size: 45px;
+    font-weight: bold;
+    margin: 10px;
+}
+
+input[type="number"] {
+    width: 100px;
+    padding: 10px;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.ekle {
+    background: #20c76a;
+}
+
+.cikar {
+    background: #e53935;
+    color: white;
+}
+
+.mac {
+    max-width: 700px;
+    margin: 30px auto;
+    background: #222;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+.mac button {
+    background: #2979ff;
+    color: white;
+}
+
+.gecmis {
+    max-width: 700px;
+    margin: auto;
+}
+
+.mac-kayit {
+    background: #222;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 10px;
+}
+
+.sil {
+    background: #e53935;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏆 eFootball Puan Tablosu</h1>
+
+<div id="takimlar"></div>
+
+<div class="mac">
+
+<h2>⚽ Maç Ekle</h2>
+
+<select id="takim1"></select>
+<select id="takim2"></select>
+
+<br>
+
+<input id="gol1" type="number" min="0" placeholder="Gol">
+-
+<input id="gol2" type="number" min="0" placeholder="Gol">
+
+<br>
+
+<button onclick="macEkle()">Maçı Kaydet</button>
+
+</div>
+
+<div class="gecmis">
+
+<h2>📜 Maç Geçmişi</h2>
+
+<div id="gecmis"></div>
+
+</div>
+
+<script>
+
+let takimlar = JSON.parse(
+    localStorage.getItem("takimlar")
+) || [
+    {isim:"Takım 1", puan:0},
+    {isim:"Takım 2", puan:0},
+    {isim:"Takım 3", puan:0},
+    {isim:"Takım 4", puan:0}
+];
+
+let maclar = JSON.parse(
+    localStorage.getItem("maclar")
+) || [];
+
+
+function kaydet() {
+
+    localStorage.setItem(
+        "takimlar",
+        JSON.stringify(takimlar)
+    );
+
+    localStorage.setItem(
+        "maclar",
+        JSON.stringify(maclar)
+    );
+}
+
+
+function takimlariGoster() {
+
+    let alan =
+        document.getElementById("takimlar");
+
+    alan.innerHTML = "";
+
+    takimlar.forEach(function(takim, i) {
+
+        alan.innerHTML += `
+
+        <div class="takim">
+
+            <input
+                value="${takim.isim}"
+                onchange="isimDegistir(${i}, this.value)"
+            >
+
+            <div class="puan">
+                ${takim.puan}
+            </div>
+
+            <input
+                id="puan${i}"
+                type="number"
+                min="1"
+                value="1"
+            >
+
+            <br>
+
+            <button
+                class="ekle"
+                onclick="puanEkle(${i})"
+            >
+                ➕ Puan Ekle
+            </button>
+
+            <button
+                class="cikar"
+                onclick="puanCikar(${i})"
+            >
+                ➖ Puan Çıkar
+            </button>
+
+        </div>
+
+        `;
+    });
+
+    secimleriGuncelle();
+}
+
+
+function isimDegistir(i, yeniIsim) {
+
+    takimlar[i].isim =
+        yeniIsim || "Takım " + (i + 1);
+
+    kaydet();
+    takimlariGoster();
+}
+
+
+function puanEkle(i) {
+
+    let miktar =
+        Number(document.getElementById("puan" + i).value);
+
+    if (miktar > 0) {
+
+        takimlar[i].puan += miktar;
+
+        kaydet();
+        takimlariGoster();
+    }
+}
+
+
+function puanCikar(i) {
+
+    let miktar =
+        Number(document.getElementById("puan" + i).value);
+
+    if (miktar > 0) {
+
+        takimlar[i].puan -= miktar;
+
+        if (takimlar[i].puan < 0) {
+            takimlar[i].puan = 0;
+        }
+
+        kaydet();
+        takimlariGoster();
+    }
+}
+
+
+function secimleriGuncelle() {
+
+    let a =
+        document.getElementById("takim1");
+
+    let b =
+        document.getElementById("takim2");
+
+    a.innerHTML = "";
+    b.innerHTML = "";
+
+    takimlar.forEach(function(takim, i) {
+
+        a.innerHTML +=
+            `<option value="${i}">
+                ${takim.isim}
+            </option>`;
+
+        b.innerHTML +=
+            `<option value="${i}">
+                ${takim.isim}
+            </option>`;
+    });
+}
+
+
+function macEkle() {
+
+    let t1 =
+        Number(document.getElementById("takim1").value);
+
+    let t2 =
+        Number(document.getElementById("takim2").value);
+
+    let g1 =
+        Number(document.getElementById("gol1").value);
+
+    let g2 =
+        Number(document.getElementById("gol2").value);
+
+
+    if (t1 === t2) {
+
+        alert("Aynı takımlar karşılaşamaz!");
+
+        return;
+    }
+
+
+    if (
+        isNaN(g1) ||
+        isNaN(g2) ||
+        g1 < 0 ||
+        g2 < 0
+    ) {
+
+        alert("Skorları gir!");
+
+        return;
+    }
+
+
+    maclar.unshift({
+
+        t1: t1,
+        t2: t2,
+        g1: g1,
+        g2: g2,
+        tarih: new Date().toLocaleString("tr-TR")
+
+    });
+
+
+    kaydet();
+
+    document.getElementById("gol1").value = "";
+    document.getElementById("gol2").value = "";
+
+    maclariGoster();
+}
+
+
+function maclariGoster() {
+
+    let alan =
+        document.getElementById("gecmis");
+
+    alan.innerHTML = "";
+
+
+    if (maclar.length === 0) {
+
+        alan.innerHTML =
+            "<p>Henüz maç yok.</p>";
+
+        return;
+    }
+
+
+    maclar.forEach(function(mac, i) {
+
+        alan.innerHTML += `
+
+        <div class="mac-kayit">
+
+            <b>
+                ${takimlar[mac.t1].isim}
+                ${mac.g1}
+                -
+                ${mac.g2}
+                ${takimlar[mac.t2].isim}
+            </b>
+
+            <br>
+
+            <small>${mac.tarih}</small>
+
+            <br>
+
+            <button
+                class="sil"
+                onclick="macSil(${i})"
+            >
+                🗑️ Maçı Sil
+            </button>
+
+        </div>
+
+        `;
+    });
+}
+
+
+function macSil(i) {
+
+    maclar.splice(i, 1);
+
+    kaydet();
+
+    maclariGoster();
+}
+
+
+takimlariGoster();
+maclariGoster();
+
+</script>
+
+</body>
+</html>
